@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# libtcod files, since they vary by system.
+libtcod*
+#PyCharm stuff
+.idea
