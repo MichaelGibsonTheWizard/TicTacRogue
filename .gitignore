@@ -107,3 +107,4 @@ venv.bak/
 libtcod*
 #PyCharm stuff
 .idea
+python/
