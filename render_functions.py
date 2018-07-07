@@ -1,7 +1,14 @@
 import libtcodpy as lcod
+from enum import Enum
 
 
-def render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
+class RenderOrder(Enum):
+    CORPSE = 1
+    ITEM = 2
+    ACTOR = 3
+
+
+def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -15,8 +22,14 @@ def render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, sc
                     else:
                         lcod.console_set_char_background(con, x, y, colors.get("dark_ground"), lcod.BKGND_SET)
 
-    for entity in entities:
+    entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
+
+    for entity in entities_in_render_order:
         draw_entity(con, entity, fov_map)
+
+    lcod.console_set_default_foreground(con, lcod.white)
+    lcod.console_print_ex(con, 1, screen_height - 2, lcod.BKGND_NONE, lcod.LEFT,
+                          "HP: {0:02}/{1:02}".format(player.fighter.hp, player.fighter.max_hp))
 
     lcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 

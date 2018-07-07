@@ -1,9 +1,12 @@
 import libtcodpy as lcod
+from death_functions import kill_monster, kill_player
+from components.ai import BasicMonster
+from components.fighter import Fighter
 from gamestates import GameStates
 from fov_functions import initialize_fov, recompute_fov
 from input_handlers import handle_keys
 from entity import Entity, get_blocking_entities_at_location
-from render_functions import render_all, clear_all
+from render_functions import render_all, clear_all, RenderOrder
 from map_objects.game_map import GameMap
 
 
@@ -28,7 +31,8 @@ def main():
         "light_ground": lcod.Color(200, 180, 50),
     }
 
-    player = Entity(0, 0, '@', lcod.white, "Player", blocks=True)
+    fighter_component = Fighter(hp=12, defense=2, power=5)
+    player = Entity(0, 0, '@', lcod.white, "Player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
     entities = [player]
 
     lcod.console_set_custom_font("arial10x10.png", lcod.FONT_TYPE_GRAYSCALE | lcod.FONT_LAYOUT_TCOD)
@@ -54,7 +58,7 @@ def main():
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, fov_radius)
 
-        render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
+        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
 
         lcod.console_flush()
 
@@ -66,6 +70,8 @@ def main():
         exit = action.get("exit")
         fullscreen = action.get("fullscreen")
 
+        player_turn_resluts = []
+
         if move and game_state == GameStates.PLAYER_TURN:
             dx, dy = move
             destination_x = player.x + dx
@@ -75,7 +81,8 @@ def main():
                 target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
                 if target:
-                    print("You kicked the " + target.name + " in the \'ole spam and eggs")
+                    attack_results = player.fighter.attack(target)
+                    player_turn_resluts.extend(attack_results)
                 else:
                     player.move(dx, dy)
                     fov_recompute = True
@@ -88,12 +95,48 @@ def main():
         if fullscreen:
             lcod.console_set_fullscreen(not lcod.console_is_fullscreen())
 
+        for player_turn_reslut in player_turn_resluts:
+            message = player_turn_reslut.get("message")
+            dead_entity = player_turn_reslut.get("dead")
+
+            if message:
+                print(message)
+
+            if dead_entity:
+                if dead_entity == player:
+                    message, game_state = kill_player(dead_entity)
+                else:
+                    message = kill_monster(dead_entity)
+
+                print(message)
+
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
-                if entity != player:
-                    print("The " + entity.name + " wonders if there's anything but spam and eggs")
+                if entity.ai:
+                    enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
 
-            game_state = GameStates.PLAYER_TURN
+                    for enemy_turn_result in enemy_turn_results:
+                        message = enemy_turn_result.get("message")
+                        dead_entity = enemy_turn_result.get("dead")
+
+                        if message:
+                            print(message)
+                        if dead_entity:
+                            if dead_entity == player:
+                                message, game_state = kill_player(dead_entity)
+                            else:
+                                message = kill_monster(dead_entity)
+
+                            print(message)
+
+                        if game_state == GameStates.PLAYER_DEAD:
+                            break
+
+                    if game_state == GameStates.PLAYER_DEAD:
+                        break
+
+            else:
+                game_state = GameStates.PLAYER_TURN
 
 
 if __name__ == "__main__":
