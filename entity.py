@@ -48,7 +48,7 @@ class Entity:
                 self.x = x
                 self.y = y
         else:
-            self.move_towards(target.x, target.y, game_map, entities)
+            self.move_towards(target, game_map, entities)
 
         lcod.path_delete(my_path)
 

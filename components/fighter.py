@@ -1,3 +1,7 @@
+import libtcodpy as lcod
+from game_messages import Message
+
+
 class Fighter:
     def __init__(self, hp, defense, power):
         self.max_hp = hp
@@ -22,10 +26,10 @@ class Fighter:
 
         if damage > 0:
             percent_gone_through = int(float(damage/self.power) * 100)
-            results.append({"message": "{0} attacks {1}! It's {2} effective!".format(self.owner.name.capitalize(),
-                            target.name, str(percent_gone_through))})
+            results.append({"message": Message("{0} attacks {1}! It's {2}% effective!".format(self.owner.name.capitalize(),
+                            target.name, str(percent_gone_through)), lcod.white)})
             results.extend(target.fighter.take_damage(damage))
         else:
-            results.append({"message": "Not... Enough... Power...!"})
+            results.append({"message": Message("Not... Enough... Power...!", lcod.white)})
 
         return results
