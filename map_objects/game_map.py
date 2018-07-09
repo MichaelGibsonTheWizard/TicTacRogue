@@ -84,13 +84,13 @@ class GameMap:
                     fighter_component = Fighter(hp=10, defense=0, power=3)
                     ai_component = BasicMonster()
 
-                    monster = Entity(x, y, 'o', lcod.desaturated_green, "Orc", blocks=True,
+                    monster = Entity(x, y, 'o', lcod.desaturated_green, "Orc", [], blocks=True,
                                      render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
                 else:
                     fighter_component = Fighter(hp=16, defense=1, power=4)
                     ai_component = BasicMonster()
 
-                    monster = Entity(x, y, 'T', lcod.darker_green, "Troll", blocks=True,
+                    monster = Entity(x, y, 'T', lcod.darker_green, "Troll", [], blocks=True,
                                      render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
                 entities.append(monster)
 

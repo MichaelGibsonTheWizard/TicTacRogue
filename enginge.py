@@ -1,6 +1,6 @@
 import libtcodpy as lcod
 from game_messages import Message, MessageLog
-
+from effect import Effect, PowerArmor
 from death_functions import kill_monster, kill_player
 from components.ai import BasicMonster
 from components.fighter import Fighter
@@ -40,7 +40,7 @@ def main():
     }
 
     fighter_component = Fighter(hp=12, defense=3, power=5)
-    player = Entity(0, 0, '@', lcod.white, "Player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
+    player = Entity(0, 0, '@', lcod.white, "Player", [], blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
     entities = [player]
 
     lcod.console_set_custom_font("arial10x10.png", lcod.FONT_TYPE_GRAYSCALE | lcod.FONT_LAYOUT_TCOD)
@@ -62,6 +62,7 @@ def main():
     mouse = lcod.Mouse()
 
     game_state = GameStates.PLAYER_TURN
+    power_armor = PowerArmor(player)
 
     while not lcod.console_is_window_closed():
         lcod.sys_check_for_event(lcod.EVENT_KEY_PRESS, key, mouse)
@@ -80,11 +81,20 @@ def main():
 
         move = action.get("move")
         exit = action.get("exit")
+        cast = action.get("cast")
         fullscreen = action.get("fullscreen")
 
         player_turn_results = []
 
-        if move and game_state == GameStates.PLAYER_TURN:
+        if cast and game_state == GameStates.PLAYER_TURN:
+            if power_armor not in player.effects:
+                print("Adding effects to list")
+                player.effects.append(power_armor)
+
+            player.evaluate_effects()
+            game_state = GameStates.ENEMY_TURN
+
+        elif move and game_state == GameStates.PLAYER_TURN:
             dx, dy = move
             destination_x = player.x + dx
             destination_y = player.y + dy
@@ -99,6 +109,8 @@ def main():
                     player.move(dx, dy)
                     fov_recompute = True
 
+                player.evaluate_effects()
+                player.clean_effects()
                 game_state = GameStates.ENEMY_TURN
 
         if exit:

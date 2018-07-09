@@ -6,12 +6,14 @@ from components.ai import BasicMonster
 
 
 class Entity:
-    def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None):
+    def __init__(self, x, y, char, color, name, effects, blocks=False, render_order=RenderOrder.CORPSE, fighter=None,
+                 ai=None):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
         self.name = name
+        self.effects = effects
         self.blocks = blocks
         self.render_order = render_order
         self.fighter = fighter
@@ -65,6 +67,15 @@ class Entity:
         dx = other.x - self.x
         dy = other.y - self.y
         return [dx, dy, math.sqrt(dx ** 2 + dy ** 2)]
+
+    def evaluate_effects(self):
+        for effect in self.effects:
+            effect.process_effect()
+
+    def clean_effects(self):
+        for effect in self.effects:
+            effect.clean_effect()
+            self.effects.remove(effect)
 
 
 def get_blocking_entities_at_location(entities, destination_x, destination_y):

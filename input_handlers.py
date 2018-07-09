@@ -20,6 +20,8 @@ def handle_keys(key):
         return {"move": (-1, 1)}
     elif key_char == 'n':
         return {"move": (1, 1)}
+    elif key_char == 'c':
+        return {"cast": True}
 
     if key.vk == lcod.KEY_ENTER and key.lalt:
         return {"fullscreen": True}
